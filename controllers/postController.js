@@ -27,7 +27,7 @@ exports.getFeed = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
-    const { body, gitLink, repoLink } = req.body;
+    const { body, gitLink, repoLink, tags } = req.body;
     const userId = req.user.userId;
 
     let attachment = null;
@@ -38,19 +38,38 @@ exports.createPost = async (req, res) => {
       public_id = req.file.filename;
     }
 
-    if (!body && !attachment) {
+    if (!body || body.trim() === "") {
       return res
         .status(400)
-        .json({ error: "Post must contain either text or an image." });
+        .json({ error: "Text content is required to make a post." });
+    }
+
+    const submittedLink = repoLink || gitLink;
+    if (attachment && submittedLink) {
+      return res
+        .status(400)
+        .json({
+          error: "You can attach an image OR a repo link, but not both.",
+        });
+    }
+
+    let parsedTags = [];
+    if (tags) {
+      try {
+        parsedTags = JSON.parse(tags);
+      } catch (e) {
+        console.error("Failed to parse tags");
+      }
     }
 
     const newPost = await prisma.post.create({
       data: {
-        body: body || "",
-        gitLink,
-        repoLink,
+        body: body,
+        gitLink: submittedLink,
+        repoLink: submittedLink,
         attachment,
         public_id,
+        tags: parsedTags,
         userId,
       },
       include: {

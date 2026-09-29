@@ -30,11 +30,12 @@ model User {
 
 model Post {
   id          Int        @id @default(autoincrement())
-  body        String     @default("")
+  body        String     
   gitLink     String?
   repoLink    String?
-  attachment  String?    // Cloudinary image URL
-  public_id   String?    // Cloudinary public ID
+  attachment  String?  
+  public_id   String?    
+  tags        String[]   @default([]) // NEW: Array of tags
   createdAt   DateTime   @default(now())
   
   userId      Int
@@ -53,7 +54,6 @@ model PostLike {
   post    Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // This ensures a user can only like a specific post once
   @@unique([userId, postId])
   @@map("post_likes")
 }

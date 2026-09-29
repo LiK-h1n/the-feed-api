@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int        @id @default(autoincrement())
+  displayName    String     @map("display_name")
+  username       String     @unique
+  email          String     @unique
+  hashedPassword String     @map("hashed_password")
+  
+  // Profile fields merged directly into User for MVP speed
+  bio            String     @default("")
+  profilePicture String?    
+  github         String?
+
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  
+  posts          Post[]
+  likes          PostLike[]
+
+  @@map("users")
+}
+
+model Post {
+  id          Int        @id @default(autoincrement())
+  body        String     @default("")
+  gitLink     String?
+  repoLink    String?
+  attachment  String?    // Cloudinary image URL
+  public_id   String?    // Cloudinary public ID
+  createdAt   DateTime   @default(now())
+  
+  userId      Int
+  author      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  likes       PostLike[]
+
+  @@map("posts")
+}
+
+model PostLike {
+  id      Int  @id @default(autoincrement())
+  userId  Int
+  postId  Int
+  
+  post    Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // This ensures a user can only like a specific post once
+  @@unique([userId, postId])
+  @@map("post_likes")
+}

@@ -93,9 +93,11 @@ exports.createPost = async (req, res) => {
 };
 
 exports.toggleLike = async (req, res) => {
+  console.log("Req User:", req.user); // Is this undefined?
+  console.log("Post ID:", req.params.postId);
   try {
     const postId = parseInt(req.params.postId);
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) {

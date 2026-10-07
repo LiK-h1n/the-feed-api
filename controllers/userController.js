@@ -97,4 +97,27 @@ const getMostFollowed = async (req, res) => {
   }
 };
 
-module.exports = { getLatestUsers, toggleFollow, getMostFollowed }; 
+const getUserProfile = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: {
+        posts: { orderBy: { createdAt: 'desc' } },
+        _count: { select: { followers: true, following: true } }
+      }
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    res.json({
+      ...user,
+      hashedPassword: null, // Don't send password!
+      followerCount: user._count.followers,
+      followingCount: user._count.following
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { getLatestUsers, toggleFollow, getMostFollowed , getUserProfile}; 

@@ -25,6 +25,9 @@ model User {
   posts          Post[]
   likes          PostLike[]
 
+  followers   Follow[] @relation("FollowerRelation")
+  following   Follow[] @relation("FollowingRelation")
+
   @@map("users")
 }
 
@@ -56,4 +59,16 @@ model PostLike {
 
   @@unique([userId, postId])
   @@map("post_likes")
+}
+
+model Follow {
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+
+  follower    User @relation("FollowingRelation", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("FollowerRelation", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@map("follows")
 }

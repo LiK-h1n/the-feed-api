@@ -120,4 +120,37 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-module.exports = { getLatestUsers, toggleFollow, getMostFollowed , getUserProfile}; 
+const getUserActivity = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: { 
+        posts: { select: { createdAt: true } },
+        likes: { select: { createdAt: true } }
+      }
+    });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const allActivities = [...user.posts, ...user.likes];
+
+    const activityMap = allActivities.reduce((acc, item) => {
+  const date = new Date(item.createdAt).toLocaleDateString('en-CA'); 
+  acc[date] = (acc[date] || 0) + 1;
+  return acc;
+}, {});
+
+    const activity = Object.keys(activityMap).map(date => ({
+      date,
+      count: activityMap[date]
+    }));
+
+    res.json(activity);
+  } catch (error) {
+    console.error("Activity Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { getLatestUsers, toggleFollow, getMostFollowed , getUserProfile, getUserActivity}; 

@@ -53,6 +53,7 @@ model PostLike {
   id      Int  @id @default(autoincrement())
   userId  Int
   postId  Int
+  createdAt DateTime @default(now())
   
   post    Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   user    User @relation(fields: [userId], references: [id], onDelete: Cascade)

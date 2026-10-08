@@ -28,7 +28,7 @@ exports.getFeed = async (req, res) => {
 exports.createPost = async (req, res) => {
   try {
     const { body, gitLink, repoLink, tags } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     let attachment = null;
     let public_id = null;
